@@ -269,10 +269,62 @@
     return div.innerHTML;
   }
 
+  // ---------- View toggle (Checklist / Riwayat Semester) ----------
+  function initViewToggle() {
+    const checklistBtn = document.getElementById("viewChecklistBtn");
+    const historyBtn = document.getElementById("viewHistoryBtn");
+    const checklistView = document.getElementById("checklistView");
+    const historyView = document.getElementById("historyView");
+
+    checklistBtn.addEventListener("click", () => {
+      checklistBtn.classList.add("active");
+      checklistBtn.setAttribute("aria-selected", "true");
+      historyBtn.classList.remove("active");
+      historyBtn.setAttribute("aria-selected", "false");
+      checklistView.hidden = false;
+      historyView.hidden = true;
+    });
+
+    historyBtn.addEventListener("click", () => {
+      historyBtn.classList.add("active");
+      historyBtn.setAttribute("aria-selected", "true");
+      checklistBtn.classList.remove("active");
+      checklistBtn.setAttribute("aria-selected", "false");
+      checklistView.hidden = true;
+      historyView.hidden = false;
+      if (window.DapodikHistory) window.DapodikHistory.render();
+    });
+  }
+
+  // ---------- Public API (dipakai oleh history.js) ----------
+  function refreshAll() {
+    renderSpine();
+    renderStage();
+    renderFooter();
+    renderRing();
+  }
+
+  window.DapodikApp = {
+    getActiveProgress: () => Object.assign({}, progress),
+    getSemesterLabel: () => document.getElementById("semesterLabel").value,
+    setSemesterLabel: (label) => {
+      document.getElementById("semesterLabel").value = label;
+      localStorage.setItem(STORAGE_SEMESTER, label);
+    },
+    /** Ganti seluruh progres aktif (dipakai saat "mulai semester baru" atau "pulihkan") */
+    loadProgress: (newProgress) => {
+      progress = Object.assign({}, newProgress);
+      saveProgress();
+      refreshAll();
+    },
+    refreshAll,
+  };
+
   // ---------- Init ----------
   function init() {
     initSemesterField();
     initResetButtons();
+    initViewToggle();
     renderSpine();
     renderStage();
     renderFooter();

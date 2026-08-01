@@ -18,6 +18,10 @@
     <div class="topbar-left">
       <span class="topbar-kicker">Register Operator</span>
       <h1 class="topbar-title">Checklist Update Dapodik</h1>
+      <div class="view-toggle" role="tablist" aria-label="Tampilan">
+        <button id="viewChecklistBtn" class="toggle-btn active" role="tab" aria-selected="true">Checklist</button>
+        <button id="viewHistoryBtn" class="toggle-btn" role="tab" aria-selected="false">Riwayat Semester</button>
+      </div>
     </div>
     <div class="topbar-right">
       <label class="semester-field">
@@ -37,7 +41,7 @@
     </div>
   </header>
 
-  <div class="body-grid">
+  <div class="body-grid" id="checklistView">
 
     <!-- ===== Sidebar: priority spine ===== -->
     <nav class="spine" aria-label="Daftar tahap">
@@ -60,6 +64,9 @@
 
   </div>
 
+  <!-- ===== Riwayat Semester (diisi oleh history.js) ===== -->
+  <section class="history-view" id="historyView" hidden></section>
+
   <footer class="app-footer">
     <div class="footer-stats" id="footerStats"></div>
     <div class="footer-actions">
@@ -72,5 +79,6 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="history.js"></script>
 </body>
 </html>
