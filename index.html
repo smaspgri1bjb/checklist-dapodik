@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checklist SOP Update Dapodik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ===== Header ===== -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-kicker">Register Operator</span>
+      <h1 class="topbar-title">Checklist Update Dapodik</h1>
+    </div>
+    <div class="topbar-right">
+      <label class="semester-field">
+        <span>Semester berjalan</span>
+        <input id="semesterLabel" type="text" placeholder="cth. Ganjil 2026/2027" />
+      </label>
+      <div class="ring-wrap" title="Progres keseluruhan">
+        <svg class="ring" viewBox="0 0 64 64">
+          <circle class="ring-track" cx="32" cy="32" r="27"></circle>
+          <circle id="ringProgress" class="ring-progress" cx="32" cy="32" r="27"></circle>
+        </svg>
+        <div class="ring-label">
+          <strong id="ringPercent">0%</strong>
+          <span>selesai</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="body-grid">
+
+    <!-- ===== Sidebar: priority spine ===== -->
+    <nav class="spine" aria-label="Daftar tahap">
+      <div class="spine-line" aria-hidden="true"></div>
+      <ol id="spineList" class="spine-list"></ol>
+
+      <div class="legend">
+        <span class="legend-title">Prioritas</span>
+        <span class="legend-item"><i class="dot dot-tinggi"></i>Tinggi</span>
+        <span class="legend-item"><i class="dot dot-sedang-tinggi"></i>Sedang-tinggi</span>
+        <span class="legend-item"><i class="dot dot-sedang"></i>Sedang</span>
+        <span class="legend-item"><i class="dot dot-rendah"></i>Rendah</span>
+      </div>
+    </nav>
+
+    <!-- ===== Main: current stage ===== -->
+    <main class="stage-panel" id="stagePanel">
+      <!-- diisi oleh app.js -->
+    </main>
+
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-stats" id="footerStats"></div>
+    <div class="footer-actions">
+      <button id="resetStageBtn" class="btn btn-ghost">Reset tahap ini</button>
+      <button id="resetAllBtn" class="btn btn-ghost btn-danger">Reset semua</button>
+    </div>
+  </footer>
+
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
