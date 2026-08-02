@@ -106,8 +106,31 @@
   function render() {
     const container = document.getElementById("historyView");
     const history = loadHistory();
+    const syncSettings = window.DapodikSync ? window.DapodikSync.getSettings() : { url: "", token: "" };
 
     container.innerHTML = `
+      <div class="sync-card">
+        <div class="sync-head">
+          <h3 class="compare-title">Sinkronisasi Google Sheets <span class="sync-optional">(opsional)</span></h3>
+          <span class="sync-status">${lastSyncedText()}</span>
+        </div>
+        <p class="history-sub">Simpan salinan progres, label semester, dan riwayat ke Google Sheets milik Anda sendiri,
+        supaya bisa dibuka dari perangkat lain. Lihat README.md untuk panduan setup lengkap (gratis, ±5 menit).</p>
+        <div class="sync-fields">
+          <label>URL Web App
+            <input type="text" id="syncUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${escapeHtml(syncSettings.url)}" />
+          </label>
+          <label>Token
+            <input type="password" id="syncToken" placeholder="token rahasia" value="${escapeHtml(syncSettings.token)}" />
+          </label>
+        </div>
+        <div class="sync-actions">
+          <button id="syncPushBtn" class="btn btn-primary">Kirim ke Google Sheets</button>
+          <button id="syncPullBtn" class="btn">Tarik dari Google Sheets</button>
+        </div>
+        <p class="sync-message" id="syncMessage"></p>
+      </div>
+
       <div class="history-toolbar">
         <div>
           <h2 class="history-title">Riwayat Semester</h2>
@@ -135,6 +158,7 @@
     `;
 
     document.getElementById("archiveBtn").addEventListener("click", onArchiveClick);
+    initSyncCard();
 
     container.querySelectorAll("[data-action='restore']").forEach((btn) =>
       btn.addEventListener("click", () => onRestore(btn.getAttribute("data-id")))
@@ -296,5 +320,72 @@
     render();
   }
 
-  window.DapodikHistory = { render, archiveCurrentSemester, computeStats };
+  // ---------- Sync card (Google Sheets) ----------
+  function lastSyncedText() {
+    if (!window.DapodikSync) return "";
+    const last = window.DapodikSync.getLastSyncedAt();
+    if (!last) return "Belum pernah disinkronkan";
+    try {
+      return "Terakhir sinkron: " + new Date(last).toLocaleString("id-ID");
+    } catch (e) {
+      return "Terakhir sinkron: " + last;
+    }
+  }
+
+  function setSyncMessage(text, isError) {
+    const el = document.getElementById("syncMessage");
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle("sync-error", !!isError);
+  }
+
+  function persistSyncSettingsFromInputs() {
+    if (!window.DapodikSync) return;
+    const url = document.getElementById("syncUrl").value;
+    const token = document.getElementById("syncToken").value;
+    window.DapodikSync.saveSettings(url, token);
+  }
+
+  function initSyncCard() {
+    if (!window.DapodikSync) return;
+
+    document.getElementById("syncUrl").addEventListener("change", persistSyncSettingsFromInputs);
+    document.getElementById("syncToken").addEventListener("change", persistSyncSettingsFromInputs);
+
+    document.getElementById("syncPushBtn").addEventListener("click", async () => {
+      persistSyncSettingsFromInputs();
+      setSyncMessage("Mengirim data ke Google Sheets…", false);
+      try {
+        await window.DapodikSync.push();
+        setSyncMessage("Berhasil dikirim ke Google Sheets.", false);
+        document.querySelector(".sync-status").textContent = lastSyncedText();
+      } catch (err) {
+        setSyncMessage(err.message, true);
+      }
+    });
+
+    document.getElementById("syncPullBtn").addEventListener("click", async () => {
+      persistSyncSettingsFromInputs();
+      const ok = confirm(
+        "Menarik data dari Google Sheets akan menimpa checklist aktif dan riwayat semester di perangkat ini. Lanjutkan?"
+      );
+      if (!ok) return;
+      setSyncMessage("Mengambil data dari Google Sheets…", false);
+      try {
+        await window.DapodikSync.pull();
+        render();
+        setSyncMessage("Berhasil ditarik dari Google Sheets.", false);
+      } catch (err) {
+        setSyncMessage(err.message, true);
+      }
+    });
+  }
+
+  window.DapodikHistory = {
+    render,
+    archiveCurrentSemester,
+    computeStats,
+    getHistory: loadHistory,
+    setHistory: saveHistory,
+  };
 })();

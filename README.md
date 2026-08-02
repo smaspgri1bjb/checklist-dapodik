@@ -12,7 +12,7 @@ apa pun. Semua progres disimpan otomatis di `localStorage` browser Anda.
 ## Deploy ke GitHub Pages
 
 1. Buat repository baru di GitHub, mis. `checklist-dapodik`.
-2. Upload 5 file ini ke root repository: `index.html`, `style.css`, `app.js`, `data.js`, `history.js`.
+2. Upload 7 file ini ke root repository: `index.html`, `style.css`, `app.js`, `data.js`, `history.js`, `sync.js`. (`google-apps-script.gs` **tidak** diupload ke GitHub — file itu ditempel langsung di Google Apps Script, lihat panduan di bawah.)
 3. Buka **Settings → Pages**, pilih branch `main` dan folder `/ (root)`, lalu **Save**.
 4. Tunggu 1–2 menit, aplikasi akan tersedia di `https://<username>.github.io/checklist-dapodik/`.
 
@@ -30,7 +30,9 @@ Google Sheets akan ditambahkan di tahap berikutnya.
 | `style.css` | Desain visual (palet warna, tipografi, layout) |
 | `data.js` | Seluruh data checklist (11 tahap, hasil digitisasi dokumen SOP) |
 | `app.js` | Logika aplikasi: render, simpan progres, hitung persentase |
-| `history.js` | Arsip semester, perbandingan progres antar semester |
+| `history.js` | Arsip semester, perbandingan progres antar semester, kartu sinkronisasi |
+| `sync.js` | Kirim/tarik data ke Google Sheets lewat Web App Apps Script |
+| `google-apps-script.gs` | Kode yang ditempel di Google Apps Script (backend Google Sheets) |
 
 ## Riwayat Semester
 
@@ -47,10 +49,51 @@ Tab **"Riwayat Semester"** di bagian atas memungkinkan Anda:
 Semua arsip juga tersimpan di `localStorage`, jadi tetap bersifat lokal per
 browser/perangkat — sama seperti progres aktif.
 
+## Sinkronisasi ke Google Sheets (opsional)
+
+Fitur ini membuat progres, label semester, dan riwayat bisa dibuka dari
+perangkat lain — dengan Google Sheet Anda sendiri sebagai "database"-nya.
+Sepenuhnya opsional; tanpa setup ini aplikasi tetap berfungsi penuh secara lokal.
+
+**Setup (±5 menit, gratis):**
+
+1. Buka [sheets.google.com](https://sheets.google.com), buat spreadsheet baru
+   (boleh nama apa saja, mis. "Data Checklist Dapodik").
+2. Di menu, buka **Extensions → Apps Script** (Ekstensi → Apps Script).
+3. Hapus kode default di editor, lalu tempel seluruh isi file
+   `google-apps-script.gs` yang disertakan di sini.
+4. Cari baris `const TOKEN = "GANTI_DENGAN_TOKEN_RAHASIA_ANDA";` di baris
+   paling atas, ganti dengan kode rahasia pilihan Anda sendiri (bebas —
+   contoh: kombinasi huruf & angka). Simpan (Ctrl+S).
+5. Klik **Deploy → New deployment**. Pilih tipe **Web app**. Isi:
+   - Execute as: **Me**
+   - Who has access: **Anyone**
+6. Klik **Deploy**, lalu **Authorize access** dan izinkan sesuai akun Google Anda
+   (akan muncul peringatan "Google hasn't verified this app" — ini normal
+   karena scriptnya milik Anda sendiri; klik **Advanced → Go to (nama
+   project) (unsafe)** untuk melanjutkan).
+7. Salin **Web app URL** yang muncul (diakhiri `/exec`).
+8. Buka aplikasi checklist → tab **Riwayat Semester** → bagian
+   "Sinkronisasi Google Sheets" → masukkan URL tersebut dan token yang sama
+   persis dengan langkah 4.
+9. Klik **Kirim ke Google Sheets** untuk mengirim data pertama kali. Ini akan
+   otomatis membuat 3 sheet: `Checklist`, `Meta`, dan `Riwayat` — semuanya
+   bisa Anda lihat langsung sebagai spreadsheet biasa.
+
+**Catatan:**
+- Jika Anda mengedit ulang kode Apps Script, gunakan **Deploy → Manage
+  deployments → Edit (ikon pensil) → Version: New version → Deploy** agar
+  URL `/exec` yang sama tetap berlaku.
+- Token berfungsi seperti kata sandi sederhana — jangan bagikan URL & token
+  ke orang lain jika tidak ingin mereka bisa membaca/mengubah data Anda.
+- "Tarik dari Google Sheets" akan **menimpa** checklist aktif dan riwayat di
+  perangkat yang sedang dipakai — akan selalu ada konfirmasi sebelum ini
+  terjadi.
+
 ## Status pengembangan
 
 - [x] Checklist interaktif 11 tahap + progres per tahap & keseluruhan
 - [x] Penyimpanan otomatis di browser (localStorage)
 - [x] Riwayat & perbandingan progres antar semester
-- [ ] Sinkronisasi opsional ke Google Sheets
+- [x] Sinkronisasi opsional ke Google Sheets
 - [ ] Export laporan siap cetak (PDF/Excel)
