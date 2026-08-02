@@ -50,11 +50,10 @@
       <ol id="spineList" class="spine-list"></ol>
 
       <div class="legend">
-        <span class="legend-title">Prioritas</span>
-        <span class="legend-item"><i class="dot dot-tinggi"></i>Tinggi</span>
-        <span class="legend-item"><i class="dot dot-sedang-tinggi"></i>Sedang-tinggi</span>
-        <span class="legend-item"><i class="dot dot-sedang"></i>Sedang</span>
-        <span class="legend-item"><i class="dot dot-rendah"></i>Rendah</span>
+        <span class="legend-title">Status tahap</span>
+        <span class="legend-item"><i class="dot dot-status-empty"></i>Belum dikerjakan</span>
+        <span class="legend-item"><i class="dot dot-status-partial"></i>Sedang berjalan</span>
+        <span class="legend-item"><i class="dot dot-status-complete"></i>Selesai</span>
       </div>
     </nav>
 
@@ -82,9 +81,12 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 <script src="history.js"></script>
+<script src="sync-config.js"></script>
 <script src="sync.js"></script>
 <script src="report.js"></script>
 </body>

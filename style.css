@@ -258,6 +258,11 @@ button, input{ font-family: inherit; }
 .badge-sedang{ background: var(--sedang); color: var(--sedang); }
 .badge-rendah{ background: var(--rendah); color: var(--rendah); }
 
+/* Status tahap (dipakai di lencana spine — merah/oranye/hijau berdasarkan progres) */
+.badge-status-empty{ background: var(--tinggi); color: var(--tinggi); }
+.badge-status-partial{ background: var(--sedang-tinggi); color: var(--sedang-tinggi); }
+.badge-status-complete{ background: var(--rendah); color: var(--rendah); }
+
 .spine-meta{ flex:1; min-width:0; }
 .spine-title{
   display:block;
@@ -313,6 +318,9 @@ button, input{ font-family: inherit; }
 .dot-sedang-tinggi{ background: var(--sedang-tinggi); }
 .dot-sedang{ background: var(--sedang); }
 .dot-rendah{ background: var(--rendah); }
+.dot-status-empty{ background: var(--tinggi); }
+.dot-status-partial{ background: var(--sedang-tinggi); }
+.dot-status-complete{ background: var(--rendah); }
 
 /* =========================================================
    Stage panel (main content)
@@ -507,6 +515,19 @@ button, input{ font-family: inherit; }
   font-size: 11px;
   color: var(--ink-soft);
   white-space: nowrap;
+}
+.sync-status-idle{ color: var(--ink-faint); }
+.sync-status-pending{ color: var(--sedang-tinggi); }
+.sync-status-saving{ color: var(--primary); }
+.sync-status-saved{ color: var(--rendah); }
+.sync-status-error{ color: var(--tinggi); }
+.sync-card code{
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
 }
 .sync-fields{
   display:flex;

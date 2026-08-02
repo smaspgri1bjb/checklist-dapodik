@@ -1,7 +1,9 @@
 /**
  * Dapodik Checklist — report.js
- * Menyusun laporan siap cetak (lewat dialog print bawaan browser -> "Simpan
- * sebagai PDF") dan ekspor .xlsx (lewat SheetJS, dimuat dari CDN di index.html).
+ * Menyusun laporan siap cetak: "Unduh PDF" membuat file PDF secara otomatis
+ * (html2canvas + jsPDF, dimuat dari CDN) yang langsung terunduh — tinggal
+ * dibuka untuk dicetak. "Unduh Excel" membuat file .xlsx dengan tombol
+ * filter (AutoFilter) di setiap sheet lewat SheetJS.
  */
 (function () {
   "use strict";
@@ -49,7 +51,7 @@
           </label>
         </div>
         <div class="report-actions">
-          <button id="printBtn" class="btn btn-primary">Cetak / Simpan sebagai PDF</button>
+          <button id="downloadPdfBtn" class="btn btn-primary">Unduh PDF</button>
           <button id="excelBtn" class="btn">Unduh Excel (.xlsx)</button>
         </div>
       </div>
@@ -97,7 +99,7 @@
       </div>
     `;
 
-    document.getElementById("printBtn").addEventListener("click", () => window.print());
+    document.getElementById("downloadPdfBtn").addEventListener("click", downloadPdf);
     document.getElementById("excelBtn").addEventListener("click", downloadExcel);
     document.getElementById("reportSchool").addEventListener("change", (e) => {
       localStorage.setItem(STORAGE_SCHOOL, e.target.value);
@@ -137,6 +139,61 @@
     `;
   }
 
+  // ---------- PDF export (auto-generate & download) ----------
+  async function downloadPdf() {
+    const btn = document.getElementById("downloadPdfBtn");
+    const sheet = document.getElementById("reportSheet");
+
+    if (typeof html2canvas === "undefined" || !window.jspdf) {
+      alert(
+        "Pustaka pembuat PDF belum termuat (butuh koneksi internet karena dimuat dari CDN). Membuka menu cetak browser sebagai gantinya — pilih \"Simpan sebagai PDF\" di sana."
+      );
+      window.print();
+      return;
+    }
+
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Menyiapkan PDF…";
+
+    try {
+      const canvas = await html2canvas(sheet, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgData = canvas.toDataURL("image/png");
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const schoolSlug = (localStorage.getItem(STORAGE_SCHOOL) || "sekolah").trim().replace(/[^a-z0-9]+/gi, "-");
+      pdf.save(`laporan-checklist-dapodik-${schoolSlug}.pdf`);
+    } catch (err) {
+      alert("Gagal membuat file PDF: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  }
+
   // ---------- Excel export ----------
   function downloadExcel() {
     if (typeof XLSX === "undefined") {
@@ -153,8 +210,13 @@
     stats.perStage.forEach((s) =>
       summaryRows.push([s.number, s.title, PRIORITY_LABEL[s.priority], s.done, s.total, s.pct + "%"])
     );
-    summaryRows.push([]);
-    summaryRows.push(["Total keseluruhan", "", "", stats.done, stats.total, stats.pct + "%"]);
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+    addAutoFilter(summarySheet, summaryRows.length, summaryRows[0].length);
+    summarySheet["!cols"] = [{ wch: 22 }, { wch: 34 }, { wch: 16 }, { wch: 10 }, { wch: 8 }, { wch: 8 }];
+    // Baris total keseluruhan ditaruh terpisah di bawah, di luar rentang filter
+    XLSX.utils.sheet_add_aoa(summarySheet, [[], ["Total keseluruhan", "", "", stats.done, stats.total, stats.pct + "%"]], {
+      origin: -1,
+    });
 
     const detailRows = [["Tahap", "Bagian", "Item", "Status"]];
     DAPODIK_DATA.stages.forEach((stage) => {
@@ -164,10 +226,13 @@
         });
       });
     });
+    const detailSheet = XLSX.utils.aoa_to_sheet(detailRows);
+    addAutoFilter(detailSheet, detailRows.length, detailRows[0].length);
+    detailSheet["!cols"] = [{ wch: 34 }, { wch: 22 }, { wch: 42 }, { wch: 10 }];
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), "Ringkasan");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), "Checklist");
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Ringkasan");
+    XLSX.utils.book_append_sheet(wb, detailSheet, "Checklist");
 
     const history = window.DapodikHistory ? window.DapodikHistory.getHistory() : [];
     if (history.length) {
@@ -175,11 +240,20 @@
       history.forEach((r) =>
         historyRows.push([r.label, r.archivedAt, r.stats.done, r.stats.total, r.stats.pct + "%"])
       );
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(historyRows), "Riwayat");
+      const historySheet = XLSX.utils.aoa_to_sheet(historyRows);
+      addAutoFilter(historySheet, historyRows.length, historyRows[0].length);
+      historySheet["!cols"] = [{ wch: 24 }, { wch: 24 }, { wch: 10 }, { wch: 8 }, { wch: 8 }];
+      XLSX.utils.book_append_sheet(wb, historySheet, "Riwayat");
     }
 
     const schoolSlug = (localStorage.getItem(STORAGE_SCHOOL) || "sekolah").trim().replace(/[^a-z0-9]+/gi, "-");
     XLSX.writeFile(wb, `checklist-dapodik-${schoolSlug}.xlsx`);
+  }
+
+  /** Menambahkan tombol filter (AutoFilter) Excel pada rentang header+data yang diberikan. */
+  function addAutoFilter(sheet, rowCount, colCount) {
+    const lastCol = XLSX.utils.encode_col(colCount - 1);
+    sheet["!autofilter"] = { ref: `A1:${lastCol}${rowCount}` };
   }
 
   window.DapodikReport = { render };

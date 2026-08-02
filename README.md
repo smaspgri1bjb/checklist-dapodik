@@ -9,10 +9,23 @@ Sarpras → Sinkronisasi & Validasi.
 Cukup buka `index.html` langsung di browser — tidak perlu server atau instalasi
 apa pun. Semua progres disimpan otomatis di `localStorage` browser Anda.
 
+## Indikator status tahap
+
+Lingkaran nomor di sidebar kiri (1–11) menunjukkan status pengerjaan tiap
+tahap, bukan prioritas:
+
+- 🔴 **Merah** — belum ada item yang dicentang
+- 🟠 **Oranye** — sedang berjalan (sebagian item sudah dicentang)
+- 🟢 **Hijau** — seluruh item pada tahap itu sudah selesai
+
+Info prioritas (Tinggi/Sedang-tinggi/Sedang/Rendah) tetap ditampilkan sebagai
+label berwarna di bagian atas panel setiap tahap.
+
 ## Deploy ke GitHub Pages
 
 1. Buat repository baru di GitHub, mis. `checklist-dapodik`.
-2. Upload 8 file ini ke root repository: `index.html`, `style.css`, `app.js`, `data.js`, `history.js`, `sync.js`, `report.js`. (`google-apps-script.gs` **tidak** diupload ke GitHub — file itu ditempel langsung di Google Apps Script, lihat panduan di bawah.)
+2. Upload 9 file ini ke root repository: `index.html`, `style.css`, `app.js`, `data.js`, `history.js`, `sync.js`, `sync-config.js`, `report.js`. (`google-apps-script.gs` **tidak** diupload ke GitHub — file itu ditempel langsung di Google Apps Script, lihat panduan di bawah.)
+   - Jika Anda ingin sinkronisasi Google Sheets aktif, isi `sync-config.js` dengan URL & token Anda **sebelum** mengunggah (lihat panduan "Sinkronisasi ke Google Sheets" di bawah). Kalau dibiarkan kosong, aplikasi tetap berjalan penuh secara lokal.
 3. Buka **Settings → Pages**, pilih branch `main` dan folder `/ (root)`, lalu **Save**.
 4. Tunggu 1–2 menit, aplikasi akan tersedia di `https://<username>.github.io/checklist-dapodik/`.
 
@@ -30,9 +43,10 @@ Google Sheets akan ditambahkan di tahap berikutnya.
 | `style.css` | Desain visual (palet warna, tipografi, layout) |
 | `data.js` | Seluruh data checklist (11 tahap, hasil digitisasi dokumen SOP) |
 | `app.js` | Logika aplikasi: render, simpan progres, hitung persentase |
-| `history.js` | Arsip semester, perbandingan progres antar semester, kartu sinkronisasi |
-| `sync.js` | Kirim/tarik data ke Google Sheets lewat Web App Apps Script |
-| `report.js` | Laporan siap cetak (PDF via print) dan ekspor Excel (.xlsx) |
+| `history.js` | Arsip semester, perbandingan progres antar semester, kartu status sinkronisasi |
+| `sync.js` | Auto-sync (kirim/tarik otomatis) ke Google Sheets lewat Web App Apps Script |
+| `sync-config.js` | URL & token Google Sheets — diatur di sini saja, tidak lewat antarmuka |
+| `report.js` | Laporan: unduh PDF otomatis & ekspor Excel dengan tombol filter |
 | `google-apps-script.gs` | Kode yang ditempel di Google Apps Script (backend Google Sheets) |
 
 ## Riwayat Semester
@@ -50,11 +64,23 @@ Tab **"Riwayat Semester"** di bagian atas memungkinkan Anda:
 Semua arsip juga tersimpan di `localStorage`, jadi tetap bersifat lokal per
 browser/perangkat — sama seperti progres aktif.
 
-## Sinkronisasi ke Google Sheets (opsional)
+## Sinkronisasi ke Google Sheets (opsional, otomatis)
 
 Fitur ini membuat progres, label semester, dan riwayat bisa dibuka dari
-perangkat lain — dengan Google Sheet Anda sendiri sebagai "database"-nya.
-Sepenuhnya opsional; tanpa setup ini aplikasi tetap berfungsi penuh secara lokal.
+perangkat lain, dengan Google Sheet Anda sendiri sebagai "database"-nya.
+Sepenuhnya opsional — tanpa setup ini aplikasi tetap berfungsi penuh secara
+lokal. URL dan token diatur **hanya lewat file `sync-config.js`**, sehingga
+tidak ada kolom URL/token di antarmuka yang bisa diubah pengguna.
+
+Setelah dikonfigurasi, sinkronisasi berjalan otomatis seperti "auto save":
+- **Saat halaman dibuka** — aplikasi otomatis menarik (pull) data terbaru dari
+  Google Sheets di belakang layar.
+- **Setiap ada perubahan** (centang item, ganti label semester, arsip/hapus
+  riwayat) — aplikasi otomatis mengirim (push) data terbaru ke Google Sheets
+  beberapa saat setelah perubahan berhenti (±1.5 detik), tanpa perlu klik apa pun.
+- Status sinkronisasi ("Tersinkron", "Menyinkronkan…", dsb.) selalu terlihat
+  di tab **Riwayat Semester**. Tombol **"Sinkron sekarang"** tersedia sebagai
+  cadangan bila Anda ingin memaksa sinkronisasi segera.
 
 **Setup (±5 menit, gratis):**
 
@@ -74,37 +100,51 @@ Sepenuhnya opsional; tanpa setup ini aplikasi tetap berfungsi penuh secara lokal
    karena scriptnya milik Anda sendiri; klik **Advanced → Go to (nama
    project) (unsafe)** untuk melanjutkan).
 7. Salin **Web app URL** yang muncul (diakhiri `/exec`).
-8. Buka aplikasi checklist → tab **Riwayat Semester** → bagian
-   "Sinkronisasi Google Sheets" → masukkan URL tersebut dan token yang sama
-   persis dengan langkah 4.
-9. Klik **Kirim ke Google Sheets** untuk mengirim data pertama kali. Ini akan
-   otomatis membuat 3 sheet: `Checklist`, `Meta`, dan `Riwayat` — semuanya
-   bisa Anda lihat langsung sebagai spreadsheet biasa.
+8. Buka file `sync-config.js` di komputer Anda, isi:
+   ```js
+   window.DAPODIK_SYNC_CONFIG = {
+     url: "https://script.google.com/macros/s/xxxxxxxx/exec", // URL dari langkah 7
+     token: "token-rahasia-yang-sama-dengan-langkah-4",
+   };
+   ```
+9. Simpan file, lalu upload/upload-ulang seluruh file ke GitHub Pages (atau
+   cukup refresh browser jika menjalankan lokal). Buka tab **Riwayat
+   Semester** — akan terlihat status "Menyinkronkan…" lalu "Tersinkron", dan
+   3 sheet otomatis terbentuk di Google Sheet Anda: `Checklist`, `Meta`, `Riwayat`.
 
 **Catatan:**
+- Karena `sync-config.js` berjalan di browser pengguna, URL & token di
+  dalamnya bisa dilihat siapa pun yang membuka "View Source" pada halaman
+  yang sudah dideploy. Ini cukup untuk mencegah perubahan tidak sengaja lewat
+  antarmuka aplikasi, tapi bukan mekanisme keamanan yang kuat — jangan
+  simpan data sensitif di Sheet yang terhubung, dan pertimbangkan membuat
+  repository GitHub Anda privat jika ingin lebih aman.
 - Jika Anda mengedit ulang kode Apps Script, gunakan **Deploy → Manage
   deployments → Edit (ikon pensil) → Version: New version → Deploy** agar
   URL `/exec` yang sama tetap berlaku.
-- Token berfungsi seperti kata sandi sederhana — jangan bagikan URL & token
-  ke orang lain jika tidak ingin mereka bisa membaca/mengubah data Anda.
-- "Tarik dari Google Sheets" akan **menimpa** checklist aktif dan riwayat di
-  perangkat yang sedang dipakai — akan selalu ada konfirmasi sebelum ini
-  terjadi.
+- Auto-pull saat memuat halaman akan **menimpa** checklist aktif dan riwayat
+  di perangkat tersebut dengan data terbaru dari Sheets — sesuai perilaku
+  "auto save" yang meng-utamakan data cloud paling baru.
 
 ## Laporan siap cetak & ekspor Excel
 
-Tab **"Laporan"** menyusun ringkasan dan rincian checklist dalam format siap
-cetak — cocok dilampirkan sebagai bukti kerja ke kepala sekolah/pengawas.
+Tab **"Laporan"** menyusun ringkasan dan rincian checklist — cocok
+dilampirkan sebagai bukti kerja ke kepala sekolah/pengawas.
 
 - Isi kolom **Nama Sekolah** dan **Disiapkan oleh** (opsional, tersimpan otomatis).
-- **Cetak / Simpan sebagai PDF** — membuka dialog cetak bawaan browser. Pilih
-  printer **"Save as PDF"** (Chrome/Edge) atau **"Microsoft Print to PDF"**
-  untuk menyimpannya sebagai file PDF, bukan mencetak ke kertas.
+- **Unduh PDF** — file PDF **langsung dibuat dan terunduh otomatis** (memakai
+  html2canvas + jsPDF di balik layar), tinggal dibuka untuk dilihat atau
+  dicetak. Tidak perlu lagi memilih "Save as PDF" secara manual di dialog
+  cetak browser. Jika koneksi internet sedang tidak tersedia (pustaka gagal
+  dimuat dari CDN), aplikasi otomatis membuka dialog cetak browser biasa
+  sebagai cadangan.
 - **Unduh Excel (.xlsx)** — mengunduh file Excel berisi 2–3 sheet: `Ringkasan`
   (persentase per tahap), `Checklist` (status setiap item), dan `Riwayat`
-  (jika ada semester yang sudah diarsipkan).
-- Fitur Excel butuh koneksi internet sekali saat halaman dimuat (pustaka
-  SheetJS dimuat dari CDN) — setelah itu bekerja tanpa perlu server.
+  (jika ada semester yang sudah diarsipkan). Setiap sheet sudah memakai
+  **AutoFilter** — baris judul kolom otomatis punya tombol dropdown filter/urut
+  bawaan Excel, tanpa perlu diaktifkan manual.
+- Kedua fitur butuh koneksi internet sekali saat halaman dimuat (pustaka
+  dimuat dari CDN) — setelah itu bekerja tanpa perlu server.
 
 ## Status pengembangan
 
@@ -116,3 +156,10 @@ cetak — cocok dilampirkan sebagai bukti kerja ke kepala sekolah/pengawas.
 
 Keempat bagian yang direncanakan sudah selesai. Aplikasi ini siap dipakai
 dan di-deploy ke GitHub Pages.
+
+## Pembaruan terbaru
+
+- Indikator status tahap (sidebar) kini berbasis progres (merah/oranye/hijau), bukan prioritas
+- Sinkronisasi Google Sheets kini otomatis penuh (auto-pull saat buka halaman, auto-push setiap perubahan); URL & token hanya bisa diatur lewat `sync-config.js`, tidak lewat antarmuka
+- Tombol "Unduh PDF" langsung membuat & mengunduh file PDF (tidak perlu dialog cetak manual)
+- Ekspor Excel kini memakai AutoFilter — tiap sheet punya tombol filter di baris judul

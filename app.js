@@ -35,6 +35,7 @@
 
   function saveProgress() {
     localStorage.setItem(STORAGE_PROGRESS, JSON.stringify(progress));
+    if (window.DapodikSync) window.DapodikSync.scheduleAutoPush();
   }
 
   // ---------- Derived data ----------
@@ -62,6 +63,12 @@
     return DAPODIK_DATA.stages.find((s) => s.id === id);
   }
 
+  function stageStatus(done, total) {
+    if (total === 0 || done === 0) return "empty";
+    if (done === total) return "complete";
+    return "partial";
+  }
+
   // ---------- Rendering: sidebar spine ----------
   function renderSpine() {
     const list = document.getElementById("spineList");
@@ -72,7 +79,8 @@
       const done = countDone(items);
       const pct = items.length ? Math.round((done / items.length) * 100) : 0;
       const isActive = stage.id === activeStageId;
-      const isComplete = done === items.length && items.length > 0;
+      const status = stageStatus(done, items.length);
+      const isComplete = status === "complete";
 
       const li = document.createElement("li");
 
@@ -88,7 +96,7 @@
       });
 
       btn.innerHTML = `
-        <span class="spine-badge badge-${stage.priority}${isComplete ? " done" : ""}">${isComplete ? "" : stage.number}</span>
+        <span class="spine-badge badge-status-${status}${isComplete ? " done" : ""}">${isComplete ? "" : stage.number}</span>
         <span class="spine-meta">
           <span class="spine-title">${stage.number}. ${escapeHtml(stage.title)}</span>
           <span class="spine-progress-track"><span class="spine-progress-fill" style="width:${pct}%"></span></span>
@@ -235,6 +243,7 @@
     input.value = localStorage.getItem(STORAGE_SEMESTER) || "";
     input.addEventListener("input", () => {
       localStorage.setItem(STORAGE_SEMESTER, input.value);
+      if (window.DapodikSync) window.DapodikSync.scheduleAutoPush();
     });
   }
 
