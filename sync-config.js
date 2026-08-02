@@ -20,5 +20,5 @@
  */
 window.DAPODIK_SYNC_CONFIG = {
   url: "https://script.google.com/macros/s/AKfycbxJ9yM22mgN7gX2UZEcaqlJYY2gRNiWdMXYjB3GaCE6wueEpxEuLC4p_2NPEcYS2MvO/exec", // contoh: "https://script.google.com/macros/s/xxxxxxxx/exec"
-  token: "LTUrjDEqg54", // contoh: "token-rahasia-anda"
+  token: "$JW!LTUrjDEqg54", // contoh: "token-rahasia-anda"
 };
