@@ -12,7 +12,7 @@ apa pun. Semua progres disimpan otomatis di `localStorage` browser Anda.
 ## Deploy ke GitHub Pages
 
 1. Buat repository baru di GitHub, mis. `checklist-dapodik`.
-2. Upload 7 file ini ke root repository: `index.html`, `style.css`, `app.js`, `data.js`, `history.js`, `sync.js`. (`google-apps-script.gs` **tidak** diupload ke GitHub — file itu ditempel langsung di Google Apps Script, lihat panduan di bawah.)
+2. Upload 8 file ini ke root repository: `index.html`, `style.css`, `app.js`, `data.js`, `history.js`, `sync.js`, `report.js`. (`google-apps-script.gs` **tidak** diupload ke GitHub — file itu ditempel langsung di Google Apps Script, lihat panduan di bawah.)
 3. Buka **Settings → Pages**, pilih branch `main` dan folder `/ (root)`, lalu **Save**.
 4. Tunggu 1–2 menit, aplikasi akan tersedia di `https://<username>.github.io/checklist-dapodik/`.
 
@@ -32,6 +32,7 @@ Google Sheets akan ditambahkan di tahap berikutnya.
 | `app.js` | Logika aplikasi: render, simpan progres, hitung persentase |
 | `history.js` | Arsip semester, perbandingan progres antar semester, kartu sinkronisasi |
 | `sync.js` | Kirim/tarik data ke Google Sheets lewat Web App Apps Script |
+| `report.js` | Laporan siap cetak (PDF via print) dan ekspor Excel (.xlsx) |
 | `google-apps-script.gs` | Kode yang ditempel di Google Apps Script (backend Google Sheets) |
 
 ## Riwayat Semester
@@ -90,10 +91,28 @@ Sepenuhnya opsional; tanpa setup ini aplikasi tetap berfungsi penuh secara lokal
   perangkat yang sedang dipakai — akan selalu ada konfirmasi sebelum ini
   terjadi.
 
+## Laporan siap cetak & ekspor Excel
+
+Tab **"Laporan"** menyusun ringkasan dan rincian checklist dalam format siap
+cetak — cocok dilampirkan sebagai bukti kerja ke kepala sekolah/pengawas.
+
+- Isi kolom **Nama Sekolah** dan **Disiapkan oleh** (opsional, tersimpan otomatis).
+- **Cetak / Simpan sebagai PDF** — membuka dialog cetak bawaan browser. Pilih
+  printer **"Save as PDF"** (Chrome/Edge) atau **"Microsoft Print to PDF"**
+  untuk menyimpannya sebagai file PDF, bukan mencetak ke kertas.
+- **Unduh Excel (.xlsx)** — mengunduh file Excel berisi 2–3 sheet: `Ringkasan`
+  (persentase per tahap), `Checklist` (status setiap item), dan `Riwayat`
+  (jika ada semester yang sudah diarsipkan).
+- Fitur Excel butuh koneksi internet sekali saat halaman dimuat (pustaka
+  SheetJS dimuat dari CDN) — setelah itu bekerja tanpa perlu server.
+
 ## Status pengembangan
 
 - [x] Checklist interaktif 11 tahap + progres per tahap & keseluruhan
 - [x] Penyimpanan otomatis di browser (localStorage)
 - [x] Riwayat & perbandingan progres antar semester
 - [x] Sinkronisasi opsional ke Google Sheets
-- [ ] Export laporan siap cetak (PDF/Excel)
+- [x] Laporan siap cetak (PDF) & ekspor Excel
+
+Keempat bagian yang direncanakan sudah selesai. Aplikasi ini siap dipakai
+dan di-deploy ke GitHub Pages.

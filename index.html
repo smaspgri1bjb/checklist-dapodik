@@ -21,6 +21,7 @@
       <div class="view-toggle" role="tablist" aria-label="Tampilan">
         <button id="viewChecklistBtn" class="toggle-btn active" role="tab" aria-selected="true">Checklist</button>
         <button id="viewHistoryBtn" class="toggle-btn" role="tab" aria-selected="false">Riwayat Semester</button>
+        <button id="viewReportBtn" class="toggle-btn" role="tab" aria-selected="false">Laporan</button>
       </div>
     </div>
     <div class="topbar-right">
@@ -67,6 +68,9 @@
   <!-- ===== Riwayat Semester (diisi oleh history.js) ===== -->
   <section class="history-view" id="historyView" hidden></section>
 
+  <!-- ===== Laporan cetak/export (diisi oleh report.js) ===== -->
+  <section class="report-view" id="reportView" hidden></section>
+
   <footer class="app-footer">
     <div class="footer-stats" id="footerStats"></div>
     <div class="footer-actions">
@@ -77,9 +81,11 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 <script src="history.js"></script>
 <script src="sync.js"></script>
+<script src="report.js"></script>
 </body>
 </html>

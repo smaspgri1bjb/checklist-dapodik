@@ -269,31 +269,33 @@
     return div.innerHTML;
   }
 
-  // ---------- View toggle (Checklist / Riwayat Semester) ----------
+  // ---------- View toggle (Checklist / Riwayat Semester / Laporan) ----------
   function initViewToggle() {
-    const checklistBtn = document.getElementById("viewChecklistBtn");
-    const historyBtn = document.getElementById("viewHistoryBtn");
-    const checklistView = document.getElementById("checklistView");
-    const historyView = document.getElementById("historyView");
+    const buttons = {
+      checklist: document.getElementById("viewChecklistBtn"),
+      history: document.getElementById("viewHistoryBtn"),
+      report: document.getElementById("viewReportBtn"),
+    };
+    const views = {
+      checklist: document.getElementById("checklistView"),
+      history: document.getElementById("historyView"),
+      report: document.getElementById("reportView"),
+    };
 
-    checklistBtn.addEventListener("click", () => {
-      checklistBtn.classList.add("active");
-      checklistBtn.setAttribute("aria-selected", "true");
-      historyBtn.classList.remove("active");
-      historyBtn.setAttribute("aria-selected", "false");
-      checklistView.hidden = false;
-      historyView.hidden = true;
-    });
+    function switchTo(name) {
+      Object.keys(buttons).forEach((key) => {
+        const isActive = key === name;
+        buttons[key].classList.toggle("active", isActive);
+        buttons[key].setAttribute("aria-selected", isActive ? "true" : "false");
+        views[key].hidden = !isActive;
+      });
+      if (name === "history" && window.DapodikHistory) window.DapodikHistory.render();
+      if (name === "report" && window.DapodikReport) window.DapodikReport.render();
+    }
 
-    historyBtn.addEventListener("click", () => {
-      historyBtn.classList.add("active");
-      historyBtn.setAttribute("aria-selected", "true");
-      checklistBtn.classList.remove("active");
-      checklistBtn.setAttribute("aria-selected", "false");
-      checklistView.hidden = true;
-      historyView.hidden = false;
-      if (window.DapodikHistory) window.DapodikHistory.render();
-    });
+    buttons.checklist.addEventListener("click", () => switchTo("checklist"));
+    buttons.history.addEventListener("click", () => switchTo("history"));
+    buttons.report.addEventListener("click", () => switchTo("report"));
   }
 
   // ---------- Public API (dipakai oleh history.js) ----------
